@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8" />
 	<title><%= title %></title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">	
 	<link href="<%= css %>" rel="stylesheet" type="text/css" />
 </head>
 <body>
 	<div class="container">
 		<div class="sidebar">
 			<div class="pad">
-				<h1><%= title %></h1>
-				<%- toc %>
+				<div class="menu">
+					<h1><%= title %></h1>
+					<%- toc %>
+				</div>
 			</div>
 		</div>
 	    

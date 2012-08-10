@@ -23,17 +23,21 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
 }
+
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
 	display: block;
 }
+
 body {
 	line-height: 1;
 }
+
 ol, ul {
 	list-style: none;
 }
+
 blockquote, q {
 	quotes: none;
 }
@@ -43,6 +47,7 @@ q:before, q:after {
 	content: '';
 	content: none;
 }
+
 table {
 	border-collapse: collapse;
 	border-spacing: 0;
@@ -54,15 +59,36 @@ body {
 	line-height:1.5;
 }
 
-h1 {
-	font-size: 2em;
+h1, h2, h3, h4, h5, h6 {
+	line-height:1;
 	margin: .5em 0;	
 }
 
-h2 {
-	font-size:1.35em;
-	margin: .5em 0;	
+h1 {
+	font-size: 2em;
+
 }
+
+h2 {
+	font-size:1.6em;
+}
+
+h3 {
+	font-size:1.4em;
+}
+
+h4 {
+	font-size:1.2em;
+}
+
+h5, h6 {
+	font-size:1em;
+	text-transform: uppercase;
+}
+
+h6 {
+	color:#999;
+} 
 
 p {
 	margin: 1em 0;
@@ -70,12 +96,12 @@ p {
 
 ol {
 	list-style: decimal;
-	margin: 1em 0;	
+	margin: 1em 0 1em 1.2em;	
 }
 
 ul {
 	list-style:circle;
-	margin: 1em 0;
+	margin: 1em 0 1em 1em;
 }
 
 a {
@@ -103,6 +129,14 @@ blockquote  p {
 	margin: 1em;
 }
 
+pre {
+	background:#efefef;
+	color:#222;
+	font-family: monospace;
+	margin: 1em 0;
+	padding:1em;		
+}
+
 .container {
 	margin: 1.5em auto;	
 	width:1200px;
@@ -127,6 +161,7 @@ blockquote  p {
 .sidebar h1 {
 	font-size: 1.7em;
 }
+
 .sidebar > .pad {
 	margin: 0 6.6%;
 }
@@ -147,4 +182,89 @@ blockquote  p {
 
 .pad h1:first-child {
 	margin-top: 0;
+}
+
+@media (max-width: 1199px){
+	.container {
+		margin: 1.5em 0;	
+		width: 100%;
+	}
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+	body {
+		font-size: 1em;
+	}	
+
+	.container {
+		margin: 1.5em 0;
+		width: 100%;
+	}
+}
+
+@media (max-width: 768px) {
+	body {
+		font-size: 1em;
+	}
+
+	.container {
+		margin: 1.5em 0;	
+		width: 100%;
+	}
+
+	.content {
+		float:none;
+		width:100%;
+	}
+
+	.sidebar {
+		float:none;
+		margin-top: 3em;	
+		position:static;
+		width:100%;
+	}
+
+	.sidebar > .pad {
+		margin: 0 2.8%;
+	}
+
+	.sidebar a {
+		color:#fff;
+		font-family: "sans-serif";		
+	}
+
+	.sidebar a:hover {
+		text-decoration: underline;
+	}
+
+	.sidebar ul {
+		color:#fff;
+		display:none;
+	}
+
+	.menu {
+		background: rgba(0,0,0, 0.8);
+		position:fixed;
+		padding: 0 2.8%;
+		top:0;
+		left:0;
+		width:100%;
+	}
+
+	.menu h1:first-child {
+		color:#fff;
+		cursor:pointer;
+		display:block;
+		font-size:1em;
+		font-family: "sans-serif";
+		margin: .5em 0;
+	}
+
+	.menu h1:before {
+		content: '+ ';
+	}
+
+	.menu:hover ul {
+		display:block;
+	}
 }
