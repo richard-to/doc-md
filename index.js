@@ -9,6 +9,7 @@ var server = function(config){
 
 	var settings = {
 		doc_md: {},
+		env: 'development',
 		static_path: path.join(__dirname, 'public'),
 		view_path: path.join(__dirname, 'views'),
 		auth: {
@@ -20,6 +21,13 @@ var server = function(config){
 	_.extend(settings, config)
 
 	app.engine('html', require('ejs').renderFile)
+	app.set('views', settings.view_path)
+	app.set('view engine', 'html')
+	app.set('env', settings.env)
+
+	if('production' == app.get('env')) {
+  		settings.doc_md.auto_generate_toc = false;
+	}
 
 	app.use(express.static(settings.static_path))
 		.use(express.cookieParser(settings.auth.cookie_secret))
@@ -27,10 +35,7 @@ var server = function(config){
    		.use(express.bodyParser())		
 		.use(auth({strategies: [settings.auth.strategy]}))
 		.use(auth_middleware(settings.auth.name))
-		.use(doc_md(settings.doc_md))
-
-	app.set('views', settings.view_path)
-	app.set('view engine', 'html')
+		.use(doc_md(settings.doc_md, settings.env))
 
 	app.get('/*', function(req, res){
 	    res.send(404)
@@ -51,6 +56,7 @@ var doc_md = function(config){
 	var settings = {
 		doc_path: null,
 		toc_filename: 'toc.json',
+		auto_generate_toc: true,
 		ext: '.md',
 		title: 'Doc-Md',
 		default_page: 'index',
@@ -130,6 +136,15 @@ var doc_md = function(config){
 		return toc_str
 	}
 
+	if(settings.auto_generate_toc == false){
+		var toc_file_path = path.join(settings.doc_path, settings.toc_filename)
+		parse_toc(toc_file_path, function(err, toc, meta){
+			if(err == null){
+				settings.toc_str = build_toc(toc, meta)
+			}
+		})		
+	}
+	
 	return function(req, res, next){
 		var base_url = settings.base_url.replace('/', '\/')
 		var url_regex =  new RegExp("^" + base_url + "\/([a-z\d]+[a-z\d\-]?[a-z\d]+)?$")
@@ -152,20 +167,29 @@ var doc_md = function(config){
 		if(req.isAuthenticated()) {
 			fs.readFile(file_path, function(err, data){
 				if(err == null){
-					parse_toc(toc_file_path, function(err, toc, meta){
-						if(err == null){
-							var toc_str = build_toc(toc, meta)
-							res.render(settings.theme.template, {
-								title: settings.title,
-								css: settings.theme.css,
-								content: mmd.convert(data.toString()),
-								toc: mmd.convert(toc_str)
-							})
-						} else {
-							console.log(err)
-							res.send(500)	
-						}
-					})
+					if(settings.auto_generate_toc == false){
+						res.render(settings.theme.template, {
+							title: settings.title,
+							css: settings.theme.css,
+							content: mmd.convert(data.toString()),
+							toc: mmd.convert(settings.toc_str)
+						})
+					} else {
+						parse_toc(toc_file_path, function(err, toc, meta){
+							if(err == null){
+								var toc_str = build_toc(toc, meta)
+								res.render(settings.theme.template, {
+									title: settings.title,
+									css: settings.theme.css,
+									content: mmd.convert(data.toString()),
+									toc: mmd.convert(toc_str)
+								})
+							} else {
+								console.log(err)
+								res.send(500)	
+							}
+						})
+					}
 				} else {
 					console.log(err)
 					next()
