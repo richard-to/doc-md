@@ -10,7 +10,7 @@ var server = function(config){
 	var settings = {
 		doc_md: {},
 		env: 'development',
-		static_path: path.join(__dirname, 'public'),
+		static_path: null,
 		view_path: path.join(__dirname, 'views'),
 		auth: {
 			name: 'anonymous',
@@ -30,7 +30,11 @@ var server = function(config){
   		settings.doc_md.auto_generate_toc = false;
 	}
 
-	app.use(express.static(settings.static_path))
+	if(settings.static_path){
+		app.use(express.static(settings.static_path))
+	}
+
+	app.use(express.static(path.join(__dirname, 'public')))
 		.use(express.cookieParser(settings.auth.cookie_secret))
    		.use(express.session())
    		.use(express.bodyParser())		
