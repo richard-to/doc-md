@@ -15,7 +15,8 @@ var server = function(config){
 		auth: {
 			name: 'anonymous',
 			strategy: auth.Anonymous(),
-			cookie_secret: 'secret'
+			cookie_secret: 'secret',
+			acl: null
 		},
 	}
 	_.extend(settings, config)
@@ -36,11 +37,10 @@ var server = function(config){
 		.use(auth({strategies: [settings.auth.strategy]}))
 		.use(auth_middleware(settings.auth.name))
 
-	if(settings.auth.name != 'anonymous'){
-		app.use(doc_md_auth(settings.doc_md))
-	} else {
-		app.use(doc_md(settings.doc_md))
+	if(settings.auth.acl){
+		app.use(settings.auth.acl)
 	}
+	app.use(doc_md(settings.doc_md))
 
 	app.get('/*', function(req, res){
 	    res.send(404)
@@ -67,14 +67,6 @@ var auth_middleware = function(auth_name) {
   	}
 };
 
-var doc_md_auth = function(config){
-	var doc_md_middleware = doc_md(config)
-	return function(req, res, next){
-		if(req.isAuthenticated()){
-			doc_md_middleware(req, res, next);
-		}
-	}
-}
 
 var doc_md = function(config){
 	
