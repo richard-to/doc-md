@@ -96,44 +96,64 @@ var doc_md = function(config){
 	}
 	_.extend(settings, config)
 
-	var parse_toc = function(toc_file, func){
+	var parse_toc = function(toc_file, doc_meta, func){
 		var trim_regex = /^\s*|\s*$/g
-
 		fs.readFile(toc_file, function(err, data){
 			if(err == null){
-				toc = JSON.parse(data)
-				meta = {}
-
+				var toc = JSON.parse(data)
 				async.map(
 					toc, 
 					function(filename, callback){
-						var file_path = path.join(
-						settings.doc_path, filename + settings.ext)
-						meta[filename] = {
-							title: filename, 
-							subheads: []
-						}
-						new lazy(fs.createReadStream(file_path))
-							.lines
-							.map(String)
-							.forEach(function(line){
-								if(line[0] == '#' && line[1] != '#'){
-									meta[filename].title = line.substring(1).replace(trim_regex, '')
-								} else if(line[0] == '#' && line[1] == '#' && line[2] != '#'){
-									var subhead = line.substring(2).replace(trim_regex, '')
-									meta[filename].subheads.push({ 
-										title:subhead,
-										anchor: subhead.replace(/ /g, '').toLowerCase()
-									})
+						var dir_path = path.join(settings.doc_path, filename)
+						fs.lstat(dir_path, function(err, stats){
+							if(!err && stats.isDirectory()){
+								var sub_toc = path.join(dir_path, settings.toc_filename)
+								parse_toc(sub_toc, doc_meta, callback)
+							} else {
+								var dir_name = toc_file.replace(settings.doc_path, '')
+									.replace(settings.toc_filename, '').replace(/^\/*|\/*$/g, '')
+								var file_path = toc_file.replace(settings.toc_filename, filename + settings.ext)
+
+								var url_path = filename
+								if(dir_name != ''){
+									url_path = dir_name + "/" + filename
 								}
 
-							})
-							.join(function(xs){
-								callback(null, true)
-							})
+								var page_meta = {
+									name: filename,
+									parent: dir_name,
+									url_path: url_path,
+									title: filename, 
+									subheads: []
+								}
+
+								new lazy(fs.createReadStream(file_path))
+									.lines
+									.map(String)
+									.forEach(function(line){
+										if(line[0] == '#' && line[1] != '#'){
+											page_meta.title = line.substring(1).replace(trim_regex, '')
+										} else if(line[0] == '#' && line[1] == '#' && line[2] != '#'){
+											var subhead = line.substring(2).replace(trim_regex, '')
+											page_meta.subheads.push({ 
+												title:subhead,
+												anchor: subhead.replace(/ /g, '').toLowerCase()
+											})
+										}
+
+									})
+									.join(function(xs){
+										callback(null, page_meta)
+									})
+							}
+						});
 					}, 
 					function(err, results){
-						func(err, toc, meta)
+						for(var i = 0; i < results.length; i++){
+							if(!_.isArray(results[i]))
+								doc_meta.push(results[i])
+						}
+						func(err, results)
 					}
 				)
 			} else {
@@ -143,42 +163,64 @@ var doc_md = function(config){
 		})
 	}	
 
-	var build_toc = function(toc, meta){
-		var toc_str = ''
+	var build_toc = function(toc_meta, func){
 
-		var count_pages = toc.length		
-		for(var i = 0; i < count_pages; i++){
-			var page =  meta[toc[i]]
-			var subheads = page['subheads']
-			
-			toc_str += '- [' + page.title + "] (" + settings.base_url + "/" + toc[i] + ")\n"
-			
-			var count_subheads = subheads.length
-			for(var g = 0; g < count_subheads; g++){
-				toc_str += '    - [' + 
-					subheads[g].title + "] (" + 
-					settings.base_url + "/" + toc[i] + "#" + 
-					subheads[g].anchor + ")\n"
+		async.map(
+			toc_meta, 
+			function(section, callback){
+
+				var toc_str = ''
+
+				if(!_.isArray(section)){
+					section = [section]
+				} else {
+					toc_str = "## " + section[0].parent.toLowerCase().replace("-", " ") + "\n\n"
+				}
+
+				var count_pages = section.length		
+				for(var i = 0; i < count_pages; i++){
+					var page =  section[i]
+					var subheads = page['subheads']
+					
+					toc_str += '- [' + page.title + "] (" + settings.base_url + "/" + page.url_path + ")\n"
+					
+					var count_subheads = subheads.length
+					for(var g = 0; g < count_subheads; g++){
+						toc_str += '    - [' + 
+							subheads[g].title + "] (" + 
+							settings.base_url + "/" + page.url_path + "#" + 
+							subheads[g].anchor + ")\n"
+					}
+				}
+				toc_str += "\n"
+				callback(null, toc_str)
+			},
+			function(err, results){
+				var menu = ''
+				var count = results.length
+				for(var i = 0; i < count; i++){
+					menu += results[i]
+				}
+				func(menu)
 			}
-		}
-		return toc_str
+		);
 	}
 
 	if(settings.auto_generate_toc == false){
 		var toc_file_path = path.join(settings.doc_path, settings.toc_filename)
-		parse_toc(toc_file_path, function(err, toc, meta){
+		parse_toc(toc_file_path, [], function(err, results){
 			if(err == null){
-				settings.toc_str = build_toc(toc, meta)
+				build_toc(results, function(menu){
+					settings.toc_str = menu
+				})
 			}
 		})		
 	}
 
 	return function(req, res, next){
 		var base_url = settings.base_url.replace('/', '\/')
-		var url_regex =  new RegExp("^" + base_url + "\/([a-z\d]+[a-z\d\-]?[a-z\d]+)?$")
-
+		var url_regex =  new RegExp("^" + base_url + "\/([a-z\d]+[\/a-z\d\-]*[a-z\d]+)?$")
 		url_match = req.path.match(url_regex)
-
 		if(url_match == null){
 			next()		
 			return
@@ -202,14 +244,15 @@ var doc_md = function(config){
 						toc: mmd.convert(settings.toc_str)
 					})
 				} else {
-					parse_toc(toc_file_path, function(err, toc, meta){
+					parse_toc(toc_file_path, [], function(err, results){
 						if(err == null){
-							var toc_str = build_toc(toc, meta)
-							res.render(settings.theme.template, {
-								title: settings.title,
-								css: settings.theme.css,
-								content: mmd.convert(data.toString()),
-								toc: mmd.convert(toc_str)
+							build_toc(results, function(menu){
+								res.render(settings.theme.template, {
+									title: settings.title,
+									css: settings.theme.css,
+									content: mmd.convert(data.toString()),
+									toc: mmd.convert(menu)
+								})
 							})
 						} else {
 							console.log(err)

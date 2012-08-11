@@ -164,6 +164,13 @@ pre {
 
 .sidebar h1 {
 	font-size: 1.7em;
+	margin-bottom:1.3em;
+}
+
+.sidebar h2 {
+	font-size: 1em;
+	text-transform: capitalize;
+	margin: 0;
 }
 
 .sidebar > .pad {
@@ -172,7 +179,7 @@ pre {
 
 .sidebar ul {
 	list-style:none;
-	margin-left:0;
+	margin: .5em 0 1.5em 0;
 }
 
 .sidebar li > ul {
@@ -241,6 +248,13 @@ pre {
 		text-decoration: underline;
 	}
 
+	.sidebar h2 {
+		color: #fff;
+		display: none;
+		font-weight:bold;
+		font-family: "sans-serif";
+	}
+
 	.sidebar ul {
 		color:#fff;
 		display:none;
@@ -273,7 +287,11 @@ pre {
 	.menu:hover {
 		bottom:50%;
 	}
+	.menu:hover h1 {
+		margin-bottom:2em;
+	}
 
+	.menu:hover h2,
 	.menu:hover ul {
 		display:block;
 	}
