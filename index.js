@@ -35,13 +35,45 @@ var server = function(config){
    		.use(express.bodyParser())		
 		.use(auth({strategies: [settings.auth.strategy]}))
 		.use(auth_middleware(settings.auth.name))
-		.use(doc_md(settings.doc_md, settings.env))
+
+	if(settings.auth.name != 'anonymous'){
+		app.use(doc_md_auth(settings.doc_md))
+	} else {
+		app.use(doc_md(settings.doc_md))
+	}
 
 	app.get('/*', function(req, res){
 	    res.send(404)
 	})
 
 	return app
+}
+
+var auth_middleware = function(auth_name) {
+	return function(req, res, next) {
+		req.authenticate([auth_name], function(err, authenticated) {
+    		if(err) {
+	        	console.log(err)
+	        	res.end()
+	      	}
+	      	else {
+	        	if(authenticated === undefined) {
+	          	}
+	          	else {
+	            	next()
+	          	}
+	      	}
+    	});
+  	}
+};
+
+var doc_md_auth = function(config){
+	var doc_md_middleware = doc_md(config)
+	return function(req, res, next){
+		if(req.isAuthenticated()){
+			doc_md_middleware(req, res, next);
+		}
+	}
 }
 
 var doc_md = function(config){
@@ -164,60 +196,38 @@ var doc_md = function(config){
 		var file_path = path.join(settings.doc_path, from + settings.ext)
 		var toc_file_path = path.join(settings.doc_path, settings.toc_filename)
 
-		if(req.isAuthenticated()) {
-			fs.readFile(file_path, function(err, data){
-				if(err == null){
-					if(settings.auto_generate_toc == false){
-						res.render(settings.theme.template, {
-							title: settings.title,
-							css: settings.theme.css,
-							content: mmd.convert(data.toString()),
-							toc: mmd.convert(settings.toc_str)
-						})
-					} else {
-						parse_toc(toc_file_path, function(err, toc, meta){
-							if(err == null){
-								var toc_str = build_toc(toc, meta)
-								res.render(settings.theme.template, {
-									title: settings.title,
-									css: settings.theme.css,
-									content: mmd.convert(data.toString()),
-									toc: mmd.convert(toc_str)
-								})
-							} else {
-								console.log(err)
-								res.send(500)	
-							}
-						})
-					}
+		fs.readFile(file_path, function(err, data){
+			if(err == null){
+				if(settings.auto_generate_toc == false){
+					res.render(settings.theme.template, {
+						title: settings.title,
+						css: settings.theme.css,
+						content: mmd.convert(data.toString()),
+						toc: mmd.convert(settings.toc_str)
+					})
 				} else {
-					console.log(err)
-					next()
+					parse_toc(toc_file_path, function(err, toc, meta){
+						if(err == null){
+							var toc_str = build_toc(toc, meta)
+							res.render(settings.theme.template, {
+								title: settings.title,
+								css: settings.theme.css,
+								content: mmd.convert(data.toString()),
+								toc: mmd.convert(toc_str)
+							})
+						} else {
+							console.log(err)
+							res.send(500)	
+						}
+					})
 				}
-			})
-		} else {
-			next()
-		}
+			} else {
+				console.log(err)
+				next()
+			}
+		})
 	}
 }
-
-var auth_middleware = function(auth_name) {
-	return function(req, res, next) {
-		req.authenticate([auth_name], function(err, authenticated) {
-    		if(err) {
-	        	console.log(err)
-	        	res.end()
-	      	}
-	      	else {
-	        	if(authenticated === undefined) {
-	          	}
-	          	else {
-	            	next()
-	          	}
-	      	}
-    	});
-  	}
-};
 
 exports.server = server
 exports.doc_md = doc_md
