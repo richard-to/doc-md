@@ -13,8 +13,8 @@ var server = function(config){
 		static_path: path.join(__dirname, 'public'),
 		view_path: path.join(__dirname, 'views'),
 		auth: {
-			name: 'never',
-			strategy: auth.Never(),
+			name: 'anonymous',
+			strategy: auth.Anonymous(),
 			cookie_secret: 'secret'
 		},
 	}
@@ -144,7 +144,7 @@ var doc_md = function(config){
 			}
 		})		
 	}
-	
+
 	return function(req, res, next){
 		var base_url = settings.base_url.replace('/', '\/')
 		var url_regex =  new RegExp("^" + base_url + "\/([a-z\d]+[a-z\d\-]?[a-z\d]+)?$")

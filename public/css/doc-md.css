@@ -154,7 +154,11 @@ pre {
 .sidebar {
 	float:left;
 	font-size: .8em;
+	overflow-x: hidden;
+  	overflow-y: auto;
 	position:fixed;
+	top:0;
+	bottom:0;
 	width:30%;
 }
 
@@ -163,7 +167,7 @@ pre {
 }
 
 .sidebar > .pad {
-	margin: 0 6.6%;
+	margin: 1.8em 6.6% 0 6.6%;
 }
 
 .sidebar ul {
@@ -244,6 +248,8 @@ pre {
 
 	.menu {
 		background: rgba(0,0,0, 0.8);
+		overflow-x:hidden;
+	  	overflow-y: auto;
 		position:fixed;
 		padding: 0 2.8%;
 		top:0;
@@ -262,6 +268,10 @@ pre {
 
 	.menu h1:before {
 		content: '+ ';
+	}
+
+	.menu:hover {
+		bottom:50%;
 	}
 
 	.menu:hover ul {
