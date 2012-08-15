@@ -1,11 +1,10 @@
 {
     "name": "doc-md",
-    "version": "0.1.0",
+    "version": "0.1.10",
     "description": "Simple Markdown Documentation with Node Js",
     "author": {
         "name": "Richard To"
-    },
-    "private": true,      
+    },     
     "main": "index",    
     "dependencies": {
         "express": "3.0.x",
@@ -17,7 +16,7 @@
         "async": "0.1.x"          
     },
     "engines": {
-        "node": "*"
+        "node": "0.8.x"
     },
     "repository": {
         "type": "git",
