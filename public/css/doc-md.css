@@ -54,7 +54,7 @@ table {
 }
 
 body {
-	font-size: 1.2em;
+	font-size: 1.15em;
 	font-family: serif;
 	line-height:1.5;
 }
@@ -104,6 +104,14 @@ ul {
 	margin: 1em 0 1em 1em;
 }
 
+li > ol {
+	margin: 0 0 0 1.2em;	
+}
+
+li > ul {
+	margin: 0 0 0 1em;
+}
+
 a {
 	color: #0073b2;
 	text-decoration:none;
@@ -129,12 +137,24 @@ blockquote  p {
 	margin: 1em;
 }
 
+code {
+	background:#efefef;
+	font-family: monospace;	
+	padding:.2em;
+}
+
 pre {
 	background:#efefef;
 	color:#222;
 	font-family: monospace;
 	margin: 1em 0;
-	padding:1em;		
+	padding:1em;
+	overflow-x: auto;	
+}
+
+pre > code {
+	background:#efefef;
+	padding:0;
 }
 
 .container {

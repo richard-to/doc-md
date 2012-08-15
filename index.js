@@ -30,12 +30,7 @@ var server = function(config){
   		settings.doc_md.auto_generate_toc = false;
 	}
 
-	if(settings.static_path){
-		app.use(express.static(settings.static_path))
-	}
-
-	app.use(express.static(path.join(__dirname, 'public')))
-		.use(express.cookieParser(settings.auth.cookie_secret))
+	app.use(express.cookieParser(settings.auth.cookie_secret))
    		.use(express.session())
    		.use(express.bodyParser())		
 		.use(auth({strategies: [settings.auth.strategy]}))
@@ -44,6 +39,13 @@ var server = function(config){
 	if(settings.auth.acl){
 		app.use(settings.auth.acl)
 	}
+
+	if(settings.static_path){
+		app.use(express.static(settings.static_path))
+	}
+
+	app.use(express.static(path.join(__dirname, 'public')))
+
 	app.use(doc_md(settings.doc_md))
 
 	app.get('/*', function(req, res){
